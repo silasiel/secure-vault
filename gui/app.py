@@ -9,9 +9,7 @@ EXECUTABLE = os.path.abspath("../build/encryptor.exe")
 selected_file = None
 result_file = None
 
-# -------------------------
 # Run backend command
-# -------------------------
 def run_command(cmd):
     try:
         result = subprocess.run(cmd, capture_output=True, text=True)
@@ -23,9 +21,7 @@ def run_command(cmd):
         messagebox.showerror("Error", str(e))
         return False
 
-# -------------------------
 # Password strength check
-# -------------------------
 def is_weak_password(password):
     score = 0
     if len(password) >= 8: score += 1
@@ -36,9 +32,7 @@ def is_weak_password(password):
     if any(not c.isalnum() for c in password): score += 1
     return score <= 2
 
-# -------------------------
 # Browse File
-# -------------------------
 def browse_file():
     global selected_file
     file_path = filedialog.askopenfilename()
@@ -46,9 +40,7 @@ def browse_file():
         selected_file = file_path
         file_label.config(text=f"Selected: {os.path.basename(selected_file)}")
 
-# -------------------------
 # Open result file
-# -------------------------
 def open_file():
     if result_file and os.path.exists(result_file):
         os.startfile(result_file)
@@ -56,10 +48,7 @@ def open_file():
 def open_folder():
     if result_file and os.path.exists(result_file):
         os.startfile(os.path.dirname(result_file))
-
-# -------------------------
 # Encrypt
-# -------------------------
 def encrypt():
     global result_file
 
@@ -89,9 +78,7 @@ def encrypt():
         status_label.config(text="Encryption complete ✅")
         result_label.config(text=result_file)
 
-# -------------------------
 # Decrypt
-# -------------------------
 def decrypt():
     global result_file
 
@@ -117,9 +104,7 @@ def decrypt():
         status_label.config(text="Decryption complete ✅")
         result_label.config(text=result_file)
 
-# -------------------------
 # Preview
-# -------------------------
 def preview():
     if not selected_file:
         messagebox.showwarning("No File", "Please select a file first")
@@ -141,9 +126,7 @@ def preview():
     text.insert("1.0", result.stdout)
     text.pack(expand=True, fill="both")
 
-# -------------------------
 # GUI
-# -------------------------
 root = tk.Tk()
 root.title("Secure File Encryptor 🔐")
 root.geometry("550x450")
@@ -172,9 +155,7 @@ status_label = tk.Label(root, text="Ready",
                         bg="#1e1e1e", fg="lightgreen")
 status_label.pack()
 
-# -------------------------
-# Result File Section (NEW)
-# -------------------------
+# Result File Section
 tk.Label(root, text="Result File:",
          bg="#1e1e1e", fg="white").pack(pady=(15, 5))
 
