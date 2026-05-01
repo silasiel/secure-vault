@@ -4,169 +4,296 @@ from tkinter.ttk import Progressbar
 import subprocess
 import os
 
-EXECUTABLE = os.path.abspath("../build/encryptor.exe")
+APP_BG = "#1e1e1e"
+CARD_BG = "#2a2a2a"
+TEXT_COLOR = "#ffffff"
+BTN_COLOR = "#3a3a3a"
+ACCENT = "#4CAF50"
 
 selected_file = None
-result_file = None
+output_file = None
 
-# Run backend command
+
+# BACKEND
 def run_command(cmd):
-    try:
-        result = subprocess.run(cmd, capture_output=True, text=True)
-        if result.returncode != 0:
-            messagebox.showerror("Error", result.stderr or result.stdout)
-            return False
-        return True
-    except Exception as e:
-        messagebox.showerror("Error", str(e))
-        return False
+    return subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="ignore")
 
-# Password strength check
-def is_weak_password(password):
-    score = 0
-    if len(password) >= 8: score += 1
-    if len(password) >= 12: score += 1
-    if any(c.islower() for c in password): score += 1
-    if any(c.isupper() for c in password): score += 1
-    if any(c.isdigit() for c in password): score += 1
-    if any(not c.isalnum() for c in password): score += 1
-    return score <= 2
 
-# Browse File
-def browse_file():
+# PASSWORD
+def ask_password():
+    password = simpledialog.askstring("Password", "Enter password:", show="*")
+    if not password:
+        return None
+
+    if len(password) < 6:
+        proceed = messagebox.askyesno(
+            "Weak Password",
+            "Weak password detected. Proceed anyway?"
+        )
+        if not proceed:
+            return None
+
+    return password
+
+
+# FILE SELECTION
+def choose_file():
     global selected_file
     file_path = filedialog.askopenfilename()
+
     if file_path:
         selected_file = file_path
-        file_label.config(text=f"Selected: {os.path.basename(selected_file)}")
+        file_label.config(text=os.path.basename(file_path))
+        status_label.config(text="File selected")
 
-# Open result file
+
+# OUTPUT
+def show_output_buttons():
+    open_btn.grid()
+    folder_btn.grid()
+
+
 def open_file():
-    if result_file and os.path.exists(result_file):
-        os.startfile(result_file)
+    if not output_file:
+        messagebox.showerror("Error", "No output file available")
+        return
+
+    if not os.path.exists(output_file):
+        messagebox.showerror("Error", "Output file not found (operation may have failed)")
+        return
+
+    os.startfile(output_file)
+
 
 def open_folder():
-    if result_file and os.path.exists(result_file):
-        os.startfile(os.path.dirname(result_file))
-# Encrypt
-def encrypt():
-    global result_file
+    if output_file and os.path.exists(output_file):
+        os.startfile(os.path.dirname(output_file))
+
+
+# ENCRYPT
+def encrypt_file():
+    global output_file
 
     if not selected_file:
-        messagebox.showwarning("No File", "Please select a file first")
+        messagebox.showerror("Error", "No file selected")
         return
 
-    password = simpledialog.askstring("Password", "Enter password:", show="*")
+    password = ask_password()
     if not password:
         return
-
-    if is_weak_password(password):
-        if not messagebox.askyesno("Weak Password", "Weak password! Continue?"):
-            return
 
     output = selected_file + ".enc"
-    result_file = output
 
-    status_label.config(text="Encrypting...")
     progress.start()
 
-    success = run_command([EXECUTABLE, "encrypt", selected_file, output, password])
+    result = run_command([
+        "../build/encryptor.exe",
+        "encrypt",
+        selected_file,
+        output,
+        password
+    ])
 
     progress.stop()
 
-    if success:
-        status_label.config(text="Encryption complete ✅")
-        result_label.config(text=result_file)
+    if result.returncode == 0:
+        output_file = output
+        status_label.config(text=f"Encrypted → {os.path.basename(output)}")
+        show_output_buttons()
+    else:
+        status_label.config(text="Encryption failed")
+        messagebox.showerror("Error", result.stderr)
 
-# Decrypt
-def decrypt():
-    global result_file
+
+# DECRYPT
+def decrypt_file():
+    global output_file
 
     if not selected_file:
-        messagebox.showwarning("No File", "Please select a file first")
+        messagebox.showerror("Error", "No file selected")
         return
 
-    password = simpledialog.askstring("Password", "Enter password:", show="*")
+    password = ask_password()
     if not password:
         return
 
-    output = selected_file + ".dec"
-    result_file = output
+    output = selected_file.replace(".enc", "") + "_decrypted"
 
-    status_label.config(text="Decrypting...")
     progress.start()
 
-    success = run_command([EXECUTABLE, "decrypt", selected_file, output, password])
+    result = run_command([
+        "../build/encryptor.exe",
+        "decrypt",
+        selected_file,
+        output,
+        password
+    ])
 
     progress.stop()
 
-    if success:
-        status_label.config(text="Decryption complete ✅")
-        result_label.config(text=result_file)
+    if result.returncode != 0:
+        status_label.config(text="Integrity check failed")
+        messagebox.showerror(
+            "Decryption Error",
+            "File is tampered or password is incorrect."
+        )
+        return
 
-# Preview
-def preview():
+    output_file = output
+    status_label.config(text=f"Decrypted → {os.path.basename(output)}")
+    show_output_buttons()
+
+
+# PREVIEW
+def preview_file():
     if not selected_file:
-        messagebox.showwarning("No File", "Please select a file first")
+        messagebox.showerror("Error", "No file selected")
         return
 
-    password = simpledialog.askstring("Password", "Enter password:", show="*")
-    if not password:
-        return
+    result = run_command([
+        "../build/encryptor.exe",
+        "preview",
+        selected_file
+    ])
 
-    result = subprocess.run(
-        [EXECUTABLE, "preview", selected_file, password],
-        capture_output=True, text=True
-    )
+    win = tk.Toplevel(root)
+    win.title("Preview")
+    win.geometry("500x400")
 
-    preview_window = tk.Toplevel(root)
-    preview_window.title("Preview")
-
-    text = tk.Text(preview_window, wrap="word")
-    text.insert("1.0", result.stdout)
+    text = tk.Text(win, wrap="word")
+    text.insert("1.0", result.stdout if result.stdout else "No preview available")
     text.pack(expand=True, fill="both")
+
+
+# LOG VIEW
+def view_logs():
+    log_path = "../logs/history.log"
+
+    win = tk.Toplevel(root)
+    win.title("Logs")
+    win.geometry("500x400")
+
+    top_frame = tk.Frame(win, bg=APP_BG)
+    top_frame.pack(fill="x", pady=5)
+
+    text_frame = tk.Frame(win)
+    text_frame.pack(fill="both", expand=True)
+
+    text = tk.Text(text_frame, bg="#111", fg="#0f0")
+    text.pack(fill="both", expand=True)
+
+    def load_logs():
+        text.delete("1.0", tk.END)
+
+        if not os.path.exists(log_path):
+            with open(log_path, "w"):
+                pass
+
+        with open(log_path, "r") as f:
+            content = f.read()
+
+        if content.strip() == "":
+            text.insert("1.0", "Logs are empty")
+        else:
+            text.insert("1.0", content)
+
+    def clear_logs():
+        if messagebox.askyesno("Confirm", "Delete all logs?"):
+            with open(log_path, "w") as f:
+                f.truncate(0)
+            load_logs()
+            messagebox.showinfo("Success", "Logs cleared")
+
+    refresh_btn = tk.Button(
+        top_frame,
+        text="Refresh",
+        bg="#2e2e2e",
+        fg="#ffffff",
+        activebackground="#3a3a3a",
+        relief="flat",
+        borderwidth=0,
+        padx=10,
+        pady=5,
+        command=load_logs
+    )
+    refresh_btn.pack(side="left", padx=10)
+
+    clear_btn = tk.Button(
+        top_frame,
+        text="Clear Logs",
+        bg="#5a1e1e",
+        fg="#ffffff",
+        activebackground="#7a2a2a",
+        relief="flat",
+        borderwidth=0,
+        padx=10,
+        pady=5,
+        command=clear_logs
+    )
+    clear_btn.pack(side="left", padx=10)
+
+    load_logs()
+
 
 # GUI
 root = tk.Tk()
-root.title("Secure File Encryptor 🔐")
-root.geometry("550x450")
-root.configure(bg="#1e1e1e")
+root.title("ENCRYPTION AND DECRYPTION TOOL")
+root.geometry("600x500")
+root.configure(bg=APP_BG)
 
-tk.Label(root, text="Secure File Encryptor",
-         bg="#1e1e1e", fg="white", font=("Arial", 16)).pack(pady=15)
+title = tk.Label(
+    root,
+    text="ENCRYPTION AND DECRYPTION TOOL",
+    bg=APP_BG,
+    fg=ACCENT,
+    font=("Segoe UI", 16, "bold")
+)
+title.pack(pady=15)
 
-tk.Button(root, text="Upload File", command=browse_file, width=20).pack(pady=10)
+card = tk.Frame(root, bg=CARD_BG, padx=20, pady=20)
+card.pack(padx=20, pady=10, fill="both", expand=True)
 
-file_label = tk.Label(root, text="No file selected",
-                      bg="#1e1e1e", fg="lightgray")
-file_label.pack(pady=5)
+file_label = tk.Label(
+    card,
+    text="No file selected",
+    bg=CARD_BG,
+    fg=TEXT_COLOR
+)
+file_label.pack(pady=10)
 
-btn_frame = tk.Frame(root, bg="#1e1e1e")
+select_btn = tk.Button(
+    card,
+    text="Choose File",
+    bg=BTN_COLOR,
+    fg=TEXT_COLOR,
+    width=20,
+    command=choose_file
+)
+select_btn.pack(pady=5)
+
+btn_frame = tk.Frame(card, bg=CARD_BG)
 btn_frame.pack(pady=15)
 
-tk.Button(btn_frame, text="Encrypt", command=encrypt, width=10).grid(row=0, column=0, padx=5)
-tk.Button(btn_frame, text="Decrypt", command=decrypt, width=10).grid(row=0, column=1, padx=5)
-tk.Button(btn_frame, text="Preview", command=preview, width=10).grid(row=0, column=2, padx=5)
+tk.Button(btn_frame, text="Encrypt", bg=ACCENT, fg="white", width=10, command=encrypt_file).grid(row=0, column=0, padx=8)
+tk.Button(btn_frame, text="Decrypt", bg="#2196F3", fg="white", width=10, command=decrypt_file).grid(row=0, column=1, padx=8)
+tk.Button(btn_frame, text="Preview", bg="#FF9800", fg="white", width=10, command=preview_file).grid(row=0, column=2, padx=8)
+tk.Button(btn_frame, text="Logs", bg="#9C27B0", fg="white", width=10, command=view_logs).grid(row=0, column=3, padx=8)
 
-progress = Progressbar(root, orient="horizontal", length=300, mode="indeterminate")
+progress = Progressbar(card, orient="horizontal", length=300, mode="indeterminate")
 progress.pack(pady=15)
 
-status_label = tk.Label(root, text="Ready",
-                        bg="#1e1e1e", fg="lightgreen")
-status_label.pack()
+status_label = tk.Label(card, text="Ready", bg=CARD_BG, fg=TEXT_COLOR)
+status_label.pack(pady=5)
 
-# Result File Section
-tk.Label(root, text="Result File:",
-         bg="#1e1e1e", fg="white").pack(pady=(15, 5))
+output_frame = tk.Frame(card, bg=CARD_BG)
+output_frame.pack(pady=10)
 
-result_label = tk.Label(root, text="None",
-                        bg="#2d2d2d", fg="white", width=50, anchor="w")
-result_label.pack(pady=5)
+open_btn = tk.Button(output_frame, text="Open File", command=open_file)
+open_btn.grid(row=0, column=0, padx=10)
+open_btn.grid_remove()
 
-result_btn_frame = tk.Frame(root, bg="#1e1e1e")
-result_btn_frame.pack()
-
-tk.Button(result_btn_frame, text="Open", command=open_file).grid(row=0, column=0, padx=5)
-tk.Button(result_btn_frame, text="Open Folder", command=open_folder).grid(row=0, column=1, padx=5)
+folder_btn = tk.Button(output_frame, text="Open Folder", command=open_folder)
+folder_btn.grid(row=0, column=1, padx=10)
+folder_btn.grid_remove()
 
 root.mainloop()
