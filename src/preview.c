@@ -3,8 +3,6 @@
 
 void preview_file(const char *input, const char *password) {
 
-    printf("Using password: %s\n", password); // TEMP debug
-
     FILE *fp = fopen(input, "rb");
 
     if (!fp) {
@@ -17,8 +15,8 @@ void preview_file(const char *input, const char *password) {
     int c;
     int count = 0;
 
-    while ((c = fgetc(fp)) != EOF && count < 100) {
-        printf("%c", c ^ 0xAA);  // still XOR for now
+    while ((c = fgetc(fp)) != EOF && count < 200) {
+        printf("%c", c);
         count++;
     }
 

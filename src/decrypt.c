@@ -3,10 +3,17 @@
 #include "../include/crypto_utils.h"
 #include "../include/history.h"
 
-void decrypt_file(const char *input, const char *output, const char *password) {
-    decrypt_file_aes(input, output, password);
+int decrypt_file(const char *input, const char *output, const char *password) {
 
+    int result = decrypt_file_aes(input, output, password);
+
+    if (result != 0) {
+        printf("ERROR: Decryption failed\n");
+        return 1;
+    }
 
     printf("Decrypted: %s -> %s\n", input, output);
     log_action("DECRYPT", input);
+
+    return 0;
 }

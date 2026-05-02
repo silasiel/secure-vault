@@ -1,0 +1,8 @@
+{
+    "test.txt": [
+        {
+            "version": 1,
+            "path": "../vault\\encrypted\\test.txt.enc"
+        }
+    ]
+}
