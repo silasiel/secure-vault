@@ -1,6 +1,9 @@
+# Force correct languages
 *.py linguist-language=Python
 *.c linguist-language=C
 *.h linguist-language=C
 
+# Ignore installer and non-source files
 *.iss linguist-vendored
 *.html linguist-vendored
+*.txt linguist-vendored
