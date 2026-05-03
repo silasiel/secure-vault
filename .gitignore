@@ -53,3 +53,24 @@ dkms.conf
 
 # debug information files
 *.dwo
+
+# Build artifacts
+dist/
+build/
+installer/
+*.spec
+
+# Executables
+*.exe
+
+# Python cache
+_pycache_/
+*.pyc
+
+# Logs & runtime data
+logs/
+vault/
+*.log
+
+# IDE
+.vscode/
