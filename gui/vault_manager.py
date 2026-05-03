@@ -5,15 +5,16 @@ import secrets
 import subprocess
 import shutil
 import stat
-import time
+import sys
 
-EXECUTABLE = "build/encryptor.exe"
-VAULT = "vault"
 
+APPDATA_DIR = os.path.join(os.environ.get("LOCALAPPDATA"), "SecureVault")
+VAULT = os.path.join(APPDATA_DIR, "vault")
+LOGS = os.path.join(APPDATA_DIR, "logs")
 
 def ensure_vault():
     os.makedirs(VAULT, exist_ok=True)
-
+    os.makedirs(LOGS, exist_ok=True)
 
 def get_folders():
     ensure_vault()
@@ -31,19 +32,27 @@ def get_files(folder):
     return os.listdir(path)
 
 
-def encrypt_files(files, folder, password):
+# ENCRYPT
+def encrypt_files(files, folder, password, executable):
     folder_path = os.path.join(VAULT, folder)
     os.makedirs(folder_path, exist_ok=True)
 
+    cmd = [executable, "encrypt_batch"]
+
     for f in files:
-        out = os.path.join(folder_path, os.path.basename(f) + ".enc")
-        subprocess.run([EXECUTABLE, "encrypt", f, out, password])
+        cmd.append(os.path.abspath(f))
 
+    cmd.append(folder_path)
+    cmd.append(password)
 
+    subprocess.run(cmd)
+
+# DELETE
 def delete_file(folder, file):
     path = os.path.join(VAULT, folder, file)
     if os.path.exists(path):
         os.remove(path)
+
 
 def delete_folder(folder):
     path = os.path.join(VAULT, folder)
@@ -64,14 +73,14 @@ def delete_folder(folder):
     except Exception as e:
         print("Delete error:", e)
         return False
-    
-    
 
+
+# PASSWORD META
 META_FILE = ".meta"
 
 
 def get_meta_path(folder):
-    return os.path.join("vault", folder, META_FILE)
+    return os.path.join(VAULT, folder, META_FILE)
 
 
 def set_folder_password(folder, password):
@@ -92,7 +101,7 @@ def verify_folder_password(folder, password):
     meta_path = get_meta_path(folder)
 
     if not os.path.exists(meta_path):
-        return None  # no password set
+        return None  # since no  password is set
 
     with open(meta_path, "r") as f:
         data = json.load(f)

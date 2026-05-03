@@ -14,4 +14,4 @@ all:
 	$(CC) $(SRC) -o $(OUT) $(CFLAGS) $(LIBS)
 
 clean:
-	del /Q build\encryptor.exe
+	del /Q build\encryptor.exe   

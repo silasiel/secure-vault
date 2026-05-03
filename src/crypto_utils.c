@@ -12,7 +12,7 @@
 #define TAG_SIZE 16
 
 
-// #KEY_DERIVATION
+// KEY_DERIVATION
 void derive_key(const char *password, unsigned char *salt, unsigned char *key) {
     PKCS5_PBKDF2_HMAC(password, strlen(password),
                       salt, SALT_SIZE,
@@ -47,7 +47,7 @@ int encrypt_file_aes(const char *input, const char *output, const char *password
 
     derive_key(password, salt, key);
 
-    // Write metadata
+    // Writing metadata
     fwrite(salt, 1, SALT_SIZE, out);
     fwrite(iv, 1, IV_SIZE, out);
 
@@ -62,7 +62,8 @@ int encrypt_file_aes(const char *input, const char *output, const char *password
     EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_SET_IVLEN, IV_SIZE, NULL);
     EVP_EncryptInit_ex(ctx, NULL, NULL, key, iv);
 
-    unsigned char inbuf[1024], outbuf[1024];
+    unsigned char inbuf[8192];
+    unsigned char outbuf[8192];
     int inlen, outlen;
 
     while ((inlen = fread(inbuf, 1, sizeof(inbuf), in)) > 0) {
@@ -94,14 +95,14 @@ int encrypt_file_aes(const char *input, const char *output, const char *password
     fclose(in);
     fclose(out);
 
-    // #LOG
+    // LOG
     log_action("ENCRYPT", input);
 
     return 0;
 }
 
 
-// #DECRYPT_AES_GCM
+// DECRYPT_AES_GCM
 int decrypt_file_aes(const char *input, const char *output, const char *password) {
 
     FILE *in = fopen(input, "rb");
@@ -139,7 +140,8 @@ int decrypt_file_aes(const char *input, const char *output, const char *password
     EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_SET_IVLEN, IV_SIZE, NULL);
     EVP_DecryptInit_ex(ctx, NULL, NULL, key, iv);
 
-    unsigned char inbuf[1024], outbuf[1024];
+    unsigned char inbuf[8192];
+    unsigned char outbuf[8192];
     int inlen, outlen;
     long total_read = 0;
 
@@ -174,7 +176,7 @@ int decrypt_file_aes(const char *input, const char *output, const char *password
         fclose(in);
         fclose(out);
 
-        remove(output);  // remove corrupted output
+        remove(output);  // to remove corrupted output
 
         return 1;
     }
@@ -185,7 +187,7 @@ int decrypt_file_aes(const char *input, const char *output, const char *password
     fclose(in);
     fclose(out);
 
-    // #LOG
+    // LOG
     log_action("DECRYPT", input);
 
     return 0;
