@@ -21,7 +21,7 @@ This app was created in collaboration with Faizah Hafeez(@faizahhafeez2-code), S
 * Launch SecureVault from Desktop or Start Menu
 * If Windows SmartScreen appears, click: More Info → Run Anyway
 ### Method 2 — Running From Source
-* Requirements
+Requirements
  - Python 3.12+
  - MinGW GCC
  - OpenSSL
