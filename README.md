@@ -14,19 +14,7 @@ This app was made in collaboration with Faizah Hafeez(@faizahhafeez2-code), Saki
 * Desktop GUI for ease of use
 * Windows installer support <br>
 
-# Tech Stack Used:
-## Languages
-- C
-- Python
-## Libraries & Tools
-- OpenSSL 
-- Tkinter
-- TkinterDnD2 
-- hashlib
-- PyInstaller 
-- Inno Setup <br>
-
-# Installation
+# Installation Guide
 ### Method 1 — Installer (Recommended)
 * Download SecureVault_Setup.exe from Releases
 * Run the installer
