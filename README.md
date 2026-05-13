@@ -20,11 +20,11 @@ This app was created in collaboration with Faizah Hafeez(@faizahhafeez2-code), S
 * Run the installer
 * Launch SecureVault from Desktop or Start Menu
 * If Windows SmartScreen appears, click: More Info → Run Anyway
-### Running From Source
+### Method 2 — Running From Source
 * Requirements
-- Python 3.12+
-- MinGW GCC
-- OpenSSL
+ - Python 3.12+
+ - MinGW GCC
+ - OpenSSL
 #### Steps
 - Build C Backend
 ```bash
