@@ -15,7 +15,7 @@ This app was created in collaboration with Faizah Hafeez(@faizahhafeez2-code), S
 * Windows installer support <br>
 
 # Installation Guide
-### Method 1 — Installer (Recommended)
+### Method 1 — Installer
 * Download SecureVault_Setup.exe from Releases
 * Run the installer
 * Launch SecureVault from Desktop or Start Menu
