@@ -37,7 +37,7 @@ This app was made in collaboration with Faizah Hafeez(@faizahhafeez2-code), Saki
 - Python 3.12+
 - MinGW GCC
 - OpenSSL
-- Build C Backend
+#### Build C Backend
 ```bash
 mingw32-make
 ```
